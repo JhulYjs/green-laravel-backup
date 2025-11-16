@@ -1,11 +1,11 @@
-# render.yaml CORRECTO para Plan Gratuito
+# render.yaml (Versión 3: La Correcta)
 services:
   - type: web
     name: greencloset-app
-    env: php
+    runtime: php  # <-- ESTE ES EL ARREGLO
     plan: free
     branch: main 
-    region: oregon # Opcional, buena latencia
+    region: oregon
     
     # Variables de Entorno para conectar la App con la Base de Datos
     envVars:
@@ -14,9 +14,13 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        generateValue: true
+        generateValue: true # Render generará una clave automáticamente
       - key: APP_URL
-        value: https://greencloset-app.onrender.com
+        # Render asignará la URL automáticamente, no necesitamos ponerla
+        fromService:
+          type: web
+          name: greencloset-app
+          property: url
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -48,6 +52,7 @@ services:
       php artisan config:cache
       php artisan route:cache
       php artisan view:cache
+      # El comando 'migrate' se ejecuta aquí para crear las tablas
       php artisan migrate --force 
 
     # Comando de inicio del servidor web
