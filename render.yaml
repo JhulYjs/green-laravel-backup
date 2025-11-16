@@ -1,37 +1,61 @@
-# Archivo: render.yaml
-# Le dice a Render cómo construir el proyecto green-laravel
-
+# render.yaml CORRECTO para Plan Gratuito
 services:
-
-  # 1. El Servicio Web (Tu Aplicación Laravel)
   - type: web
     name: greencloset-app
     env: php
-    plan: free  # ¡Importante! Esto activa el Nivel Gratuito
+    plan: free
+    branch: main 
+    region: oregon # Opcional, buena latencia
+    
+    # Variables de Entorno para conectar la App con la Base de Datos
+    envVars:
+      - key: APP_DEBUG
+        value: false
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://greencloset-app.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: greencloset-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: greencloset-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: greencloset-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: greencloset-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: greencloset-db
+          property: password
 
-    # Le dice a Apache (servidor) que sirva desde la carpeta /public
-    publicDirectory: public
-
-    # Comandos de construcción (se ejecutan en orden al desplegar)
+    # Comandos para instalar y preparar todo
     buildCommand: |
-      composer install --no-dev
+      composer install --no-dev --optimize-autoloader
       npm install
       npm run build
       php artisan config:cache
       php artisan route:cache
-      php artisan storage:link
-      php artisan migrate --force
+      php artisan view:cache
+      php artisan migrate --force 
 
-    # Disco persistente para las imágenes (el arreglo para el storage)
-    disks:
-      - name: greencloset-storage
-        # Esta es la carpeta privada de Laravel donde se suben las imágenes
-        mountPath: /var/www/html/storage/app/public
-        sizeGB: 1 # 1 GB es el límite gratuito
+    # Comando de inicio del servidor web
+    startCommand: heroku-php-apache2 public/
 
-  # 2. La Base de Datos (MySQL)
-  - type: pserv # 'pserv' = Private Service
-    name: greencloset-db
-    env: mysql
-    plan: free # ¡Importante! Nivel Gratuito
-    mysqlVersion: 8
+# Aquí pedimos la Base de Datos PostgreSQL (que sí es Gratis)
+databases:
+  - name: greencloset-db
+    plan: free
+    databaseName: green_laravel
+    user: green_user
