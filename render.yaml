@@ -1,13 +1,14 @@
-# render.yaml (Versión 3: La Correcta)
+# render.yaml (Versión 4: Arreglando runtime y APP_URL)
 services:
   - type: web
     name: greencloset-app
-    runtime: php  # <-- ESTE ES EL ARREGLO
+    # HE ELIMINADO la línea 'runtime: php' que causaba el error.
+    # Render detectará PHP automáticamente.
     plan: free
     branch: main 
-    region: oregon
+    region: oregon 
     
-    # Variables de Entorno para conectar la App con la Base de Datos
+    # Variables de Entorno
     envVars:
       - key: APP_DEBUG
         value: false
@@ -15,12 +16,11 @@ services:
         value: production
       - key: APP_KEY
         generateValue: true # Render generará una clave automáticamente
-      - key: APP_URL
-        # Render asignará la URL automáticamente, no necesitamos ponerla
-        fromService:
-          type: web
-          name: greencloset-app
-          property: url
+      
+      # HE ELIMINADO la variable APP_URL de aquí.
+      # La pondremos manualmente después de que se cree el sitio.
+
+      # Conexión a la Base de Datos PostgreSQL
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -52,13 +52,12 @@ services:
       php artisan config:cache
       php artisan route:cache
       php artisan view:cache
-      # El comando 'migrate' se ejecuta aquí para crear las tablas
       php artisan migrate --force 
 
     # Comando de inicio del servidor web
     startCommand: heroku-php-apache2 public/
 
-# Aquí pedimos la Base de Datos PostgreSQL (que sí es Gratis)
+# Base de Datos PostgreSQL (Esto está correcto)
 databases:
   - name: greencloset-db
     plan: free
