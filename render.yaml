@@ -1,0 +1,37 @@
+# Archivo: render.yaml
+# Le dice a Render cómo construir el proyecto green-laravel
+
+services:
+
+  # 1. El Servicio Web (Tu Aplicación Laravel)
+  - type: web
+    name: greencloset-app
+    env: php
+    plan: free  # ¡Importante! Esto activa el Nivel Gratuito
+
+    # Le dice a Apache (servidor) que sirva desde la carpeta /public
+    publicDirectory: public
+
+    # Comandos de construcción (se ejecutan en orden al desplegar)
+    buildCommand: |
+      composer install --no-dev
+      npm install
+      npm run build
+      php artisan config:cache
+      php artisan route:cache
+      php artisan storage:link
+      php artisan migrate --force
+
+    # Disco persistente para las imágenes (el arreglo para el storage)
+    disks:
+      - name: greencloset-storage
+        # Esta es la carpeta privada de Laravel donde se suben las imágenes
+        mountPath: /var/www/html/storage/app/public
+        sizeGB: 1 # 1 GB es el límite gratuito
+
+  # 2. La Base de Datos (MySQL)
+  - type: pserv # 'pserv' = Private Service
+    name: greencloset-db
+    env: mysql
+    plan: free # ¡Importante! Nivel Gratuito
+    mysqlVersion: 8
